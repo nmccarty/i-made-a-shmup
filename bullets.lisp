@@ -14,7 +14,7 @@
    (y-pos :accessor get-y-pos
 	  :initarg :y-pos
 	  :initform 0)
-   (age :accessor get-ages
+   (age :accessor get-age
 	:initarg :age
 	:initform 0)))
 
@@ -23,13 +23,21 @@
 ;; step: Increases age by one tick and updates x-pos and y-pos accordingly
 ;; get-pos: returns a cons cell containing the x-pos and y-pos
 ;; collision-p: given hitcircle for player in terms of ((x-pos . y-pos) . radius), return t if the player has collided with the bullet
-(defgeneric step-bullet (bullet))
-(defgeneric bullet-pos (bullet))
-(defgeneric bullet-collision-p (bullet player-pos))
+(defgeneric step-bullet (bullet)
+  (:documentation "Advances the state of bullet by one tick and returns bullet"))
+(defgeneric bullet-pos (bullet)
+  (:documentation "Returns position of the center of the bullet with form (x-pos . y-pos)"))
+(defgeneric bullet-collision-p (bullet player-pos)
+  (:documentation "Returns t if player described by player-pos of form ((x . y) . radius) has collided with bullet, nil if otherwise"))
+
 
 ;; Optional components of the bullet interface
 ;; radius: radius of the rough bounding circle of this bullet
-(defgeneric bullet-radius (bullet))
+;; velocity: rough current veclocity of form (speed . direction)
+(defgeneric bullet-radius (bullet)
+  (:documentation "Returns rough radius of bullet if avaible, returns 0 otherwise"))
+(defgeneric bullet-velocity (bullet)
+  (:documentation "Returns rough velocity of bullet with form (speed . direction) if avaible, returns (0 . 0) otherwise"))
 
 
 ;; Things that are implemented for you
@@ -37,14 +45,74 @@
 (defmethod bullet-pos ((bullet bullet))
   (cons (get-x-pos bullet) (get-y-pos bullet)))
 
+
 ;; Required things that aren't implemented for you
 ;; All these throw errors if they get hit
 (defmethod step-bullet ((bullet bullet))
   (error "Unimplemented required bullet method"))
 (defmethod get-pos ((bullet bullet))
   (error "Unimplemented required bullet method"))
-(defmethod bullet-collision-p ((bullet bullet))
+(defmethod bullet-collision-p ((bullet bullet) player-pos)
   (error "Unimplemented required bullet method"))
+
 
 ;; Things that aren't required or implmented for you
 (defmethod bullet-radius ((bullet bullet)) 0)
+(defmethod bullet-velocity ((bullet bullet)) (cons 0 0))
+
+
+;; Print support for the bullet class
+(defmethod print-object ((obj bullet) stream)
+  (print-unreadable-object (obj stream :type t :identity t)
+    (princ (bullet-pos obj) stream)
+    (princ #\Space stream)
+    (princ (get-age obj) stream)))
+
+
+
+
+;; A subclass of bullet that travels in straight lines and is a circle
+;; Intended only for rapid prototyping and testing
+;; Has radius in units, direction in radians, and speed in units per tick
+(defclass circle-bullet (bullet)
+  ((radius :accessor get-radius
+	   :initarg :radius
+	   :initform 0.01)
+   (direction :accessor get-direction
+	      :initarg :direction
+	      :initform 0)
+   (speed :accessor get-speed
+	  :initarg :speed
+	  :initform 1/120)))
+
+
+;; Required interface elements for circlebullet
+(defmethod step-bullet ((bullet circle-bullet))
+  (let ((old-x     (get-x-pos bullet))
+	(old-y     (get-y-pos bullet))
+	(dir   (get-direction bullet))
+	(speed     (get-speed bullet)))
+    (incf (get-age bullet))
+    (setf (get-x-pos bullet) (+ old-x (* speed (cos dir))))
+    (setf (get-y-pos bullet) (+ old-y (* speed (sin dir)))))
+  bullet)
+
+(defmethod  bullet-pos ((bullet circle-bullet))
+  (cons (get-x-pos bullet) (get-y-pos bullet)))
+
+(defmethod bullet-collision-p ((bullet circle-bullet) player-pos)
+  (< (+ (expt (- (get-x-pos bullet)
+		 (caar player-pos))
+	      2)
+	(expt (- (get-y-pos bullet)
+		 (cdar player-pos))
+	      2))
+     (expt (cadr player-pos) 2)))
+
+
+;; Optional interface elements for circlebullet
+(defmethod bullet-radius ((bullet circle-bullet))
+  (get-radius bullet))
+
+(defmethod bullet-velocity ((bullet circle-bullet))
+  (cons (get-speed bullet) (get-direction bullet)))
