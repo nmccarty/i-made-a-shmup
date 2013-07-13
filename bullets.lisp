@@ -6,7 +6,7 @@
 ;; Bullets have three basic properties:
 ;; 1.) X position [-1.0<=x<=1.0]
 ;; 2.) Y position [-1.0<=y<=1.0]
-;; 3.) Age in ticks [Intger value greater than 0]
+;; 3.) Age in ticks [Intger value greter than 0]
 (defclass bullet ()
   ((x-pos :accessor get-x-pos
 	  :initarg :x-pos
@@ -21,14 +21,17 @@
 
 ;; Interface that all bullets must have
 ;; step: Increases age by one tick and updates x-pos and y-pos accordingly
-;; get-pos: returns a cons cell containing the x-pos and y-pos
+;; pos: returns a cons cell containing the x-pos and y-pos
 ;; collision-p: given hitcircle for player in terms of ((x-pos . y-pos) . radius), return t if the player has collided with the bullet
-(defgeneric step-bullet (bullet)
+;; Cullable-p: returns t if the given bullet can safely be removed from the simulation now
+(defgeneric bullet-step (bullet)
   (:documentation "Advances the state of bullet by one tick and returns bullet"))
 (defgeneric bullet-pos (bullet)
   (:documentation "Returns position of the center of the bullet with form (x-pos . y-pos)"))
 (defgeneric bullet-collision-p (bullet player-pos)
   (:documentation "Returns t if player described by player-pos of form ((x . y) . radius) has collided with bullet, nil if otherwise"))
+(defgeneric bullet-cullable-p (bullet)
+  (:documentation "Returns t if bullet can safely be deleted."))
 
 
 ;; Optional components of the bullet interface
@@ -45,12 +48,18 @@
 (defmethod bullet-pos ((bullet bullet))
   (cons (get-x-pos bullet) (get-y-pos bullet)))
 
+(defmethod bullet-cullable-p ((bullet bullet))
+  (or (> (get-x-pos bullet) 1)
+      (> (get-y-pos bullet) 1)
+      (< (get-x-pos bullet) -1)
+      (< (get-y-pos bullet) -1)))
+
 
 ;; Required things that aren't implemented for you
 ;; All these throw errors if they get hit
-(defmethod step-bullet ((bullet bullet))
+(defmethod bullet-step ((bullet bullet))
   (error "Unimplemented required bullet method"))
-(defmethod get-pos ((bullet bullet))
+(defmethod bullet-pos ((bullet bullet))
   (error "Unimplemented required bullet method"))
 (defmethod bullet-collision-p ((bullet bullet) player-pos)
   (error "Unimplemented required bullet method"))
@@ -87,7 +96,7 @@
 
 
 ;; Required interface elements for circlebullet
-(defmethod step-bullet ((bullet circle-bullet))
+(defmethod bullet-step ((bullet circle-bullet))
   (let ((old-x     (get-x-pos bullet))
 	(old-y     (get-y-pos bullet))
 	(dir   (get-direction bullet))
