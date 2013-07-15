@@ -116,7 +116,7 @@
 	(expt (- (get-y-pos bullet)
 		 (cdar player-pos))
 	      2))
-     (expt (cadr player-pos) 2)))
+     (expt (cdr player-pos) 2)))
 
 
 ;; Optional interface elements for circlebullet
