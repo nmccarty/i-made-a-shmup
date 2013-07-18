@@ -92,7 +92,8 @@
 	      :initform 0)
    (speed :accessor get-speed
 	  :initarg :speed
-	  :initform 1/120)))
+	  :initform 1/120))
+  (:documentation "A basic subclass of bullet intended for testing and rapid prototyping"))
 
 
 ;; Required interface elements for circlebullet
@@ -125,3 +126,51 @@
 
 (defmethod bullet-velocity ((bullet circle-bullet))
   (cons (get-speed bullet) (get-direction bullet)))
+
+
+
+
+;; A more useful implementation of bullet
+(defclass parametric-bullet (bullet)
+  ((x-function :accessor get-x-function
+	       :initarg :x-func
+	       :initform #'(lambda (x) (1- (/ x 120))))
+   (y-function :accessor get-y-function
+	       :initarg :y-func
+	       :initform #'(lambda (y) (1- (/ y 120))))
+   (radius :accessor get-radius
+	   :initarg :radius
+	   :initform 0.01))
+  (:documentation "A subclass of bullet that describes position as a parametric function."))
+
+
+;; Required interface elements for parametric-bullet
+(defmethod bullet-step ((bullet parametric-bullet))
+  (incf (get-age bullet))
+  (setf (get-x-pos bullet)
+	(funcall (get-x-function bullet) (get-age bullet)))
+  (setf (get-y-pos bullet)
+	(funcall (get-y-function bullet) (get-age bullet))))
+
+(defmethod bullet-collision-p ((bullet parametric-bullet) player-pos)
+  (< (+ (expt (- (get-x-pos bullet)
+		 (caar player-pos))
+	      2)
+	(expt (- (get-y-pos bullet)
+		 (cdar player-pos))
+	      2))
+     (expt (cdr player-pos) 2)))
+
+
+;; Optional interface elements for parametric bullets
+(defmethod bullet-radius ((bullet parametric-bullet))
+  (get-radius bullet))
+
+(defmethod bullet-velocity ((bullet parametric-bullet))
+  (let ((curr-x (get-x-pos bullet))
+	(curr-y (get-y-pos bullet))
+	(next-x (funcall (get-x-function bullet)
+			 (1+ (get-age bullet))))
+	(next-y (funcall (get-y-function bullet)
+			 (1+ (get-age bullet)))))
+    (error "You haven't implemented this yet for parametric bullet")))
