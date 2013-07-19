@@ -59,9 +59,8 @@
 ;; All these throw errors if they get hit
 (defmethod bullet-step ((bullet bullet))
   (error "Unimplemented required bullet method"))
-(defmethod bullet-pos ((bullet bullet))
-  (error "Unimplemented required bullet method"))
 (defmethod bullet-collision-p ((bullet bullet) player-pos)
+  (declare (ignore player-pos))
   (error "Unimplemented required bullet method"))
 
 
