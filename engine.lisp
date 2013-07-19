@@ -48,6 +48,12 @@
 (defun add-enemy (enemy)
   (push enemy *enemy-queue*))
 
+(defun claim-all-bullets ()
+  (mapcar #'add-bullet
+	  (reduce #'append
+		  (mapcar #'enemy-claim-bullets
+			  *enemies*))))
+
 
 ;; Main engine stepping
 
@@ -60,9 +66,10 @@
 					 (loop while *bullet-queue* do
 					   (push (pop *bullet-queue*) *bullets*)))
 				     #'step-enemies
+				     #'claim-all-bullets
 				     #'(lambda ()
 					 (loop while *enemy-queue* do
-					      (push (pop *bullet-queue*) *bullets*)))
+					      (push (pop *enemy-queue*) *enemies*)))
 				     #'(lambda ()
 					 (incf *tick-loop-age*))))
 
