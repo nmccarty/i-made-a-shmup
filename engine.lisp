@@ -1,9 +1,12 @@
 (defpackage :imas.engine
-  (:use :common-lisp :imas.bullets))
+  (:use :common-lisp
+	:imas.bullets
+	:imas.enemies))
 
 
 ;; Holds all the bullets currently in simulation in a list 
 (defparameter *bullets* nil)
+;; Holds all the bullets we have been asked to add to the simulation in a list
 (defparameter *bullet-queue* nil)
 
 ;; Functions relating to bullets
@@ -24,6 +27,28 @@
   (push bullet *bullet-queue*))
 
 
+;; Holds all the enemys currently in the simulation in a list
+(defparameter *enemies* nil)
+;; Holds all the enemys we have been asked to add to the simulation in a list
+(defparameter *enemy-queue* nil)
+
+;; Functions relating to enemies
+(defun step-enemies ()
+  "Advances the states of all the enemies by one tick.
+   Deletes all that are cullable."
+  (setf *enemies*
+	(remove-if #'enemy-cullable-p
+		   *enemies*
+		   :key #'enemy-step)))
+
+(defun flush-enemies ()
+  "Deletes all enemies currently in the simulation."
+  (setf *enemies* nil))
+
+(defun add-enemy (enemy)
+  (push enemy *enemy-queue*))
+
+
 ;; Main engine stepping
 
 ;; Holds the age of the tick loop
@@ -32,8 +57,12 @@
 ;; Holds all the stepping functions
 (defparameter *step-functions* (list #'step-bullets
 				     #'(lambda ()
-					 (while *bullet-queue*
+					 (loop while *bullet-queue* do
 					   (push (pop *bullet-queue*) *bullets*)))
+				     #'step-enemies
+				     #'(lambda ()
+					 (loop while *enemy-queue* do
+					      (push (pop *bullet-queue*) *bullets*)))
 				     #'(lambda ()
 					 (incf *tick-loop-age*))))
 

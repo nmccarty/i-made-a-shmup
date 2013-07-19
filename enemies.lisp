@@ -61,7 +61,7 @@
 
 ;; Simply returns the list in slot unclaimed bullets and flushes it
 (defmethod enemy-claim-bullets (enemy)
-  (let (list (get-unclaimed-bullets enemy))
+  (let ((list (get-unclaimed-bullets enemy)))
     (setf (get-unclaimed-bullets enemy) nil)
     list))
 
@@ -88,7 +88,8 @@
 
 
 ;; Parts of the required interface that aren't implemented for you
-(defmethod enemy-collision-p (enemy)
+(defmethod enemy-collision-p (enemy pos-pair)
+  (declare (ignore pos-pair))
   (error (concatenate 'string
 		      "Enemy-collision-p not defined for type:"
 		      (prin1-to-string (type-of enemy)))))
