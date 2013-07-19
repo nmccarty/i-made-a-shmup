@@ -21,15 +21,15 @@
 
 ;; Interface that all bullets must have
 ;; step: Increases age by one tick and updates x-pos and y-pos accordingly
-;; pos: returns a cons cell containing the x-pos and y-pos
-;; collision-p: given hitcircle for player in terms of ((x-pos . y-pos) . radius), return t if the player has collided with the bullet
-;; Cullable-p: returns t if the given bullet can safely be removed from the simulation now
 (defgeneric bullet-step (bullet)
   (:documentation "Advances the state of bullet by one tick and returns bullet"))
+;; pos: returns a cons cell containing the x-pos and y-pos
 (defgeneric bullet-pos (bullet)
   (:documentation "Returns position of the center of the bullet with form (x-pos . y-pos)"))
+;; collision-p: given hitcircle for player in terms of ((x-pos . y-pos) . radius), return t if the player has collided with the bullet
 (defgeneric bullet-collision-p (bullet player-pos)
   (:documentation "Returns t if player described by player-pos of form ((x . y) . radius) has collided with bullet, nil if otherwise"))
+;; Cullable-p: returns t if the given bullet can safely be removed from the simulation now
 (defgeneric bullet-cullable-p (bullet)
   (:documentation "Returns t if bullet can safely be deleted."))
 
